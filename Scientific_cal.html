@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Scientific Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 15px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            max-width: 360px;
+            width: 100%;
+            border: 15px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .display-container {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .history {
+            color: #666;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            min-height: 15px;
+            margin-bottom: 10px;
+            text-align: right;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .display {
+            color: #00ff88;
+            font-size: 24px;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+        .expression {
+            font-size: 16px;
+            color: #888;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .result {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00ff88;
+            overflow-x: auto;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .theme-toggle, .history-btn {
+            background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .theme-toggle:hover, .history-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        button:active::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-number {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            color: #333;
+            font-weight: 600;
+        }
+
+        .btn-operator {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-function {
+            background: linear-gradient(145deg, #4ecdc4, #44a08d);
+            color: white;
+            font-size: 12px;
+        }
+
+        .btn-advanced {
+            background: linear-gradient(145deg, #845ec2, #6c5ce7);
+            color: white;
+            font-size: 11px;
+        }
+
+        .btn-clear {
+            background: linear-gradient(145deg, #ffa726, #ff9800);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-equals {
+            background: linear-gradient(145deg, #66bb6a, #4caf50);
+            color: white;
+            grid-column: span 2;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        .history-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            transition: right 0.3s ease;
+            padding: 20px;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .history-panel.open {
+            right: 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .history-expression {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .history-result {
+            font-family: 'Courier New', monospace;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        button:hover .tooltip {
+            opacity: 1;
+        }
+
+        .error-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .dark-theme {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .dark-theme .calculator {
+            background: rgba(52, 73, 94, 0.95);
+            color: #ecf0f1;
+        }
+
+        .dark-theme .btn-number {
+            background: linear-gradient(145deg, #34495e, #2c3e50);
+            color: #ecf0f1;
+        }
+
+        .dark-theme .mode-btn {
+            background: #34495e;
+            color: #ecf0f1;
+        }
+
+        .dark-theme .theme-toggle, .dark-theme .history-btn {
+            background: linear-gradient(145deg, #34495e, #2c3e50);
+            color: #ecf0f1;
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 600px) {
+            .calculator {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .buttons {
+                gap: 8px;
+                grid-template-columns: repeat(5, 1fr);
+            }
+            
+            button {
+                padding: 10px;
+                font-size: 12px;
+                min-height: 45px;
+            }
+            
+            .btn-function, .btn-advanced {
+                font-size: 10px;
+            }
+            
+            .history-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧮 Advanced Scientific Calculator</h1>
+        <p>Full-featured calculator with history, themes, and advanced functions</p>
+    </div>
+
+    <div class="calculator">
+        <div class="controls">
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setAngleMode('deg')">DEG</button>
+                <button class="mode-btn" onclick="setAngleMode('rad')">RAD</button>
+                <button class="mode-btn" onclick="setAngleMode('grad')">GRAD</button>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Theme">🌙</button>
+            <button class="history-btn" onclick="toggleHistory()" title="View Calculation History">📜</button>
+        </div>
+        
+        <div class="display-container">
+            <div class="history" id="lastCalculation"></div>
+            <div class="display">
+                <div class="expression" id="expression"></div>
+                <div class="result" id="result">0</div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <!-- Row 1: Memory and Advanced Functions -->
+            <button class="btn-advanced" onclick="memoryStore()" title="Store in Memory">
+                MS
+                <div class="tooltip">Memory Store</div>
+            </button>
+            <button class="btn-advanced" onclick="memoryRecall()" title="Recall from Memory">
+                MR
+                <div class="tooltip">Memory Recall</div>
+            </button>
+            <button class="btn-advanced" onclick="memoryClear()" title="Clear Memory">
+                MC
+                <div class="tooltip">Memory Clear</div>
+            </button>
+            <button class="btn-advanced" onclick="memoryAdd()" title="Add to Memory">
+                M+
+                <div class="tooltip">Memory Add</div>
+            </button>
+            <button class="btn-clear" onclick="clearAll()">AC</button>
+            <button class="btn-clear" onclick="clearEntry()">CE</button>
+
+            <!-- Row 2: Advanced Math Functions -->
+            <button class="btn-function" onclick="appendFunction('sinh(')">sinh</button>
+            <button class="btn-function" onclick="appendFunction('cosh(')">cosh</button>
+            <button class="btn-function" onclick="appendFunction('tanh(')">tanh</button>
+            <button class="btn-function" onclick="appendFunction('asin(')">asin</button>
+            <button class="btn-function" onclick="appendFunction('acos(')">acos</button>
+            <button class="btn-function" onclick="appendFunction('atan(')">atan</button>
+
+            <!-- Row 3: Trig and Log Functions -->
+            <button class="btn-function" onclick="appendFunction('sin(')">sin</button>
+            <button class="btn-function" onclick="appendFunction('cos(')">cos</button>
+            <button class="btn-function" onclick="appendFunction('tan(')">tan</button>
+            <button class="btn-function" onclick="appendFunction('log(')">log</button>
+            <button class="btn-function" onclick="appendFunction('ln(')">ln</button>
+            <button class="btn-function" onclick="appendFunction('abs(')">|x|</button>
+
+            <!-- Row 4: Powers and Roots -->
+            <button class="btn-function" onclick="power()">x²</button>
+            <button class="btn-function" onclick="cube()">x³</button>
+            <button class="btn-function" onclick="appendFunction('^(')">xʸ</button>
+            <button class="btn-function" onclick="appendFunction('sqrt(')">√x</button>
+            <button class="btn-function" onclick="appendFunction('cbrt(')">∛x</button>
+            <button class="btn-function" onclick="reciprocal()">1/x</button>
+
+            <!-- Row 5: Numbers and Basic Operations -->
+            <button class="btn-number" onclick="appendNumber('7')">7</button>
+            <button class="btn-number" onclick="appendNumber('8')">8</button>
+            <button class="btn-number" onclick="appendNumber('9')">9</button>
+            <button class="btn-operator" onclick="appendOperator('/')">/</button>
+            <button class="btn-operator" onclick="appendOperator('*')">×</button>
+            <button class="btn-function" onclick="backspace()">⌫</button>
+
+            <button class="btn-number" onclick="appendNumber('4')">4</button>
+            <button class="btn-number" onclick="appendNumber('5')">5</button>
+            <button class="btn-number" onclick="appendNumber('6')">6</button>
+            <button class="btn-operator" onclick="appendOperator('-')">-</button>
+            <button class="btn-operator" onclick="appendOperator('+')">+</button>
+            <button class="btn-function" onclick="factorial()">n!</button>
+
+            <button class="btn-number" onclick="appendNumber('1')">1</button>
+            <button class="btn-number" onclick="appendNumber('2')">2</button>
+            <button class="btn-number" onclick="appendNumber('3')">3</button>
+            <button class="btn-function" onclick="appendNumber('(')">(</button>
+            <button class="btn-function" onclick="appendNumber(')')">)</button>
+            <button class="btn-function" onclick="percentage()">%</button>
+
+            <button class="btn-number btn-zero" onclick="appendNumber('0')">0</button>
+            <button class="btn-number" onclick="appendNumber('.')">.</button>
+            <button class="btn-function" onclick="appendNumber('π')">π</button>
+            <button class="btn-function" onclick="appendNumber('e')">e</button>
+            <button class="btn-equals" onclick="calculate()">=</button>
+        </div>
+
+        <div class="help-text">
+            💡 <strong>Tips:</strong> Use keyboard shortcuts | View history | Memory functions available | Supports complex expressions
+        </div>
+    </div>
+
+    <!-- History Panel -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <h3>Calculation History</h3>
+            <div>
+                <button onclick="clearHistory()" style="margin-right: 10px; padding: 5px 10px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer;">Clear</button>
+                <button onclick="toggleHistory()" style="padding: 5px 10px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer;">✕</button>
+            </div>
+        </div>
+        <div id="historyList">
+            <p style="color: #666; text-align: center; padding: 20px;">No calculations yet</p>
+        </div>
+    </div>
+
+    <script>
+        let currentExpression = '';
+        let currentResult = '0';
+        let angleMode = 'deg';
+        let lastWasEquals = false;
+        let memory = 0;
+        let calculationHistory = [];
+        let isDarkTheme = false;
+
+        const expressionDisplay = document.getElementById('expression');
+        const resultDisplay = document.getElementById('result');
+        const lastCalculationDisplay = document.getElementById('lastCalculation');
+        const historyPanel = document.getElementById('historyPanel');
+        const historyList = document.getElementById('historyList');
+
+        function updateDisplay() {
+            expressionDisplay.textContent = currentExpression;
+            resultDisplay.textContent = currentResult;
+        }
+
+        function appendNumber(num) {
+            if (lastWasEquals && !isNaN(num) && num !== '(' && num !== ')') {
+                currentExpression = '';
+                lastWasEquals = false;
+            }
+            
+            if (num === 'π') {
+                currentExpression += 'π';
+            } else if (num === 'e') {
+                currentExpression += 'e';
+            } else {
+                currentExpression += num;
+            }
+            
+            lastWasEquals = false;
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (lastWasEquals) {
+                currentExpression = currentResult;
+                lastWasEquals = false;
+            }
+            
+            if (currentExpression && !isOperator(currentExpression.slice(-1))) {
+                currentExpression += op;
+                updateDisplay();
+            }
+        }
+
+        function appendFunction(func) {
+            if (lastWasEquals) {
+                currentExpression = '';
+                lastWasEquals = false;
+            }
+            currentExpression += func;
+            updateDisplay();
+        }
+
+        function isOperator(char) {
+            return ['+', '-', '*', '/', '^'].includes(char);
+        }
+
+        function clearAll() {
+            currentExpression = '';
+            currentResult = '0';
+            lastWasEquals = false;
+            lastCalculationDisplay.textContent = '';
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            currentResult = '0';
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentExpression.length > 0) {
+                currentExpression = currentExpression.slice(0, -1);
+                updateDisplay();
+            }
+        }
+
+        function power() {
+            if (lastWasEquals) {
+                currentExpression = currentResult;
+                lastWasEquals = false;
+            }
+            currentExpression += '^2';
+            updateDisplay();
+        }
+
+        function cube() {
+            if (lastWasEquals) {
+                currentExpression = currentResult;
+                lastWasEquals = false;
+            }
+            currentExpression += '^3';
+            updateDisplay();
+        }
+
+        function reciprocal() {
+            if (lastWasEquals) {
+                currentExpression = currentResult;
+                lastWasEquals = false;
+            }
+            currentExpression = '1/(' + currentExpression + ')';
+            updateDisplay();
+        }
+
+        function factorial() {
+            if (lastWasEquals) {
+                currentExpression = currentResult;
+                lastWasEquals = false;
+            }
+            currentExpression += '!';
+            updateDisplay();
+        }
+
+        function percentage() {
+            if (currentExpression) {
+                try {
+                    const result = evaluateExpression(currentExpression) / 100;
+                    addToHistory(currentExpression + '%', result);
+                    currentResult = formatResult(result);
+                    currentExpression = '';
+                    lastWasEquals = true;
+                    updateDisplay();
+                } catch (error) {
+                    showError();
+                }
+            }
+        }
+
+        function setAngleMode(mode) {
+            angleMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function calculate() {
+            if (currentExpression) {
+                try {
+                    const result = evaluateExpression(currentExpression);
+                    addToHistory(currentExpression, result);
+                    lastCalculationDisplay.textContent = `${currentExpression} = ${formatResult(result)}`;
+                    currentResult = formatResult(result);
+                    lastWasEquals = true;
+                    updateDisplay();
+                } catch (error) {
+                    showError();
+                }
+            }
+        }
+
+        function evaluateExpression(expr) {
+            // Replace mathematical symbols and functions
+            expr = expr.replace(/×/g, '*');
+            expr = expr.replace(/π/g, Math.PI);
+            expr = expr.replace(/e(?![a-z])/g, Math.E);
+            
+            // Handle factorials
+            expr = expr.replace(/(\d+(?:\.\d+)?)!/g, (match, num) => {
+                return factorialCalc(parseFloat(num));
+            });
+            
+            // Handle power operations
+            expr = expr.replace(/\^/g, '**');
+            
+            // Handle trigonometric functions
+            expr = expr.replace(/sinh\(/g, 'Math.sinh(');
+            expr = expr.replace(/cosh\(/g, 'Math.cosh(');
+            expr = expr.replace(/tanh\(/g, 'Math.tanh(');
+            expr = expr.replace(/asin\(/g, 'Math.asin(');
+            expr = expr.replace(/acos\(/g, 'Math.acos(');
+            expr = expr.replace(/atan\(/g, 'Math.atan(');
+            expr = expr.replace(/sin\(/g, 'Math.sin(');
+            expr = expr.replace(/cos\(/g, 'Math.cos(');
+            expr = expr.replace(/tan\(/g, 'Math.tan(');
+            
+            // Handle logarithms and other functions
+            expr = expr.replace(/log\(/g, 'Math.log10(');
+            expr = expr.replace(/ln\(/g, 'Math.log(');
+            expr = expr.replace(/sqrt\(/g, 'Math.sqrt(');
+            expr = expr.replace(/cbrt\(/g, 'Math.cbrt(');
+            expr = expr.replace(/abs\(/g, 'Math.abs(');
+            
+            // Convert angles based on mode
+            if (angleMode === 'deg') {
+                expr = expr.replace(/Math\.(sin|cos|tan)\(/g, (match, func) => {
+                    return `Math.${func}((Math.PI/180)*`;
+                });
+                expr = expr.replace(/Math\.(asin|acos|atan)\(/g, (match, func) => {
+                    return `(180/Math.PI)*Math.${func}(`;
+                });
+            } else if (angleMode === 'grad') {
+                expr = expr.replace(/Math\.(sin|cos|tan)\(/g, (match, func) => {
+                    return `Math.${func}((Math.PI/200)*`;
+                });
+                expr = expr.replace(/Math\.(asin|acos|atan)\(/g, (match, func) => {
+                    return `(200/Math.PI)*Math.${func}(`;
+                });
+            }
+            
+            // Evaluate the expression
+            return Function(`"use strict"; return (${expr})`)();
+        }
+
+        function factorialCalc(n) {
+            if (n < 0 || !Number.isInteger(n)) return NaN;
+            if (n === 0 || n === 1) return 1;
+            if (n > 170) return Infinity; // Prevent overflow
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        function formatResult(result) {
+            if (isNaN(result) || !isFinite(result)) {
+                return 'Error';
+            }
+            
+            if (Math.abs(result) >= 1e12 || (Math.abs(result) < 1e-8 && result !== 0)) {
+                return result.toExponential(6);
+            }
+            
+            return parseFloat(result.toFixed(12)).toString();
+        }
+
+        function showError() {
+            currentResult = 'Error';
+            document.querySelector('.calculator').classList.add('error-shake');
+            setTimeout(() => {
+                document.querySelector('.calculator').classList.remove('error-shake');
+            }, 500);
+            updateDisplay();
+        }
+
+        // Memory functions
+        function memoryStore() {
+            try {
+                memory = parseFloat(currentResult);
+                showMemoryIndicator('Stored');
+            } catch (error) {
+                showError();
+            }
+        }
+
+        function memoryRecall() {
+            currentExpression = memory.toString();
+            lastWasEquals = false;
+            updateDisplay();
+            showMemoryIndicator('Recalled');
+        }
+
+        function memoryClear() {
+            memory = 0;
+            showMemoryIndicator('Cleared');
+        }
+
+        function memoryAdd() {
+            try {
+                memory += parseFloat(currentResult);
+                showMemoryIndicator('Added');
+            } catch (error) {
+                showError();
+            }
+        }
+
+        function showMemoryIndicator(action) {
+            const indicator = document.createElement('div');
+            indicator.textContent = `Memory ${action}`;
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4caf50;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                font-size: 14px;
+                z-index: 1001;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(indicator);
+            setTimeout(() => {
+                document.body.removeChild(indicator);
+            }, 2000);
+        }
+
+        // History functions
+        function addToHistory(expression, result) {
+            const historyItem = {
+                expression: expression,
+                result: formatResult(result),
+                timestamp: new Date().toLocaleString()
+            };
+            calculationHistory.unshift(historyItem);
+            
+            // Keep only last 50 calculations
+            if (calculationHistory.length > 50) {
+                calculationHistory = calculationHistory.slice(0, 50);
+            }
+            
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            if (calculationHistory.length === 0) {
+                historyList.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No calculations yet</p>';
+                return;
+            }
+            
+            historyList.innerHTML = calculationHistory.map((item, index) => `
+                <div class="history-item" onclick="useHistoryItem(${index})">
+                    <div class="history-expression">${item.expression}</div>
+                    <div class="history-result">= ${item.result}</div>
+                    <div style="font-size: 10px; color: #999; margin-top: 5px;">${item.timestamp}</div>
+                </div>
+            `).join('');
+        }
+
+        function useHistoryItem(index) {
+            const item = calculationHistory[index];
+            currentExpression = item.expression;
+            currentResult = item.result;
+            lastWasEquals = true;
+            updateDisplay();
+            toggleHistory();
+        }
+
+        function toggleHistory() {
+            historyPanel.classList.toggle('open');
+        }
+
+        function clearHistory() {
+            calculationHistory = [];
+            updateHistoryDisplay();
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            document.body.classList.toggle('dark-theme');
+            const themeBtn = document.querySelector('.theme-toggle');
+            themeBtn.textContent = isDarkTheme ? '☀️' : '🌙';
+        }
+
+        // Enhanced keyboard support
+        document.addEventListener('keydown', (e) => {
+            const key = e.key;
+            
+            if (key >= '0' && key <= '9' || key === '.') {
+                appendNumber(key);
+            } else if (['+', '-', '*', '/'].includes(key)) {
+                appendOperator(key === '*' ? '*' : key);
+            } else if (key === 'Enter' || key === '=') {
+                e.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                e.preventDefault();
+                backspace();
+            } else if (key === '(' || key === ')') {
+                appendNumber(key);
+            } else if (key.toLowerCase() === 'h') {
+                toggleHistory();
+            } else if (key.toLowerCase() === 't') {
+                toggleTheme();
+            } else if (key === '%') {
+                percentage();
+            }
+        });
+
+        // Click outside to close history
+        document.addEventListener('click', (e) => {
+            if (!historyPanel.contains(e.target) && !e.target.classList.contains('history-btn')) {
+                if (historyPanel.classList.contains('open')) {
+                    historyPanel.classList.remove('open');
+                }
+            }
+        });
+
+        // Add CSS animation for memory indicator
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize display
+        updateDisplay();
+        updateHistoryDisplay();
+
+        // Add tooltips for better UX
+        const tooltipStyle = document.createElement('style');
+        tooltipStyle.textContent = `
+            .btn-function:hover::after,
+            .btn-advanced:hover::after {
+                content: attr(title);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                white-space: nowrap;
+                z-index: 100;
+                opacity: 1;
+                pointer-events: none;
+            }
+        `;
+        document.head.appendChild(tooltipStyle);
+
+        // Add advanced functions
+        window.calculateAdvanced = {
+            // Statistical functions
+            mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
+            median: (arr) => {
+                const sorted = [...arr].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            },
+            
+            // Number theory functions
+            gcd: (a, b) => b === 0 ? a : window.calculateAdvanced.gcd(b, a % b),
+            lcm: (a, b) => (a * b) / window.calculateAdvanced.gcd(a, b),
+            
+            // Conversion functions
+            degToRad: (deg) => deg * Math.PI / 180,
+            radToDeg: (rad) => rad * 180 / Math.PI,
+            gradToRad: (grad) => grad * Math.PI / 200
+        };
+
+        // Enhanced error handling with specific error messages
+        window.handleSpecificErrors = (expr) => {
+            if (expr.includes('/0')) return 'Division by zero';
+            if (expr.includes('sqrt(-')) return 'Invalid square root';
+            if (expr.includes('log(0') || expr.includes('ln(0')) return 'Invalid logarithm';
+            if (expr.includes('asin(') || expr.includes('acos(')) {
+                // Check for values outside [-1, 1] for inverse trig functions
+                const match = expr.match(/(asin|acos)\(([^)]+)\)/);
+                if (match) {
+                    try {
+                        const value = parseFloat(match[2]);
+                        if (Math.abs(value) > 1) return 'Invalid inverse trig input';
+                    } catch (e) {}
+                }
+            }
+            return null;
+        };
+
+        // Add copy result functionality
+        resultDisplay.addEventListener('click', () => {
+            navigator.clipboard.writeText(currentResult).then(() => {
+                const indicator = document.createElement('div');
+                indicator.textContent = 'Result Copied!';
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #4caf50;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    font-size: 14px;
+                    z-index: 1001;
+                    animation: fadeOut 2s ease;
+                `;
+                document.body.appendChild(indicator);
+                setTimeout(() => {
+                    document.body.removeChild(indicator);
+                }, 2000);
+            }).catch(() => {
+                console.log('Copy failed');
+            });
+        });
+
+        // Add expression validation
+        function validateExpression(expr) {
+            let parentheses = 0;
+            for (let char of expr) {
+                if (char === '(') parentheses++;
+                if (char === ')') parentheses--;
+                if (parentheses < 0) return false;
+            }
+            return parentheses === 0;
+        }
+
+        // Enhanced calculate function with better error handling
+        const originalCalculate = calculate;
+        calculate = function() {
+            if (currentExpression) {
+                // Check for balanced parentheses
+                if (!validateExpression(currentExpression)) {
+                    resultDisplay.textContent = 'Unbalanced parentheses';
+                    setTimeout(() => {
+                        resultDisplay.textContent = currentResult;
+                    }, 2000);
+                    return;
+                }
+
+                // Check for specific errors
+                const specificError = window.handleSpecificErrors(currentExpression);
+                if (specificError) {
+                    resultDisplay.textContent = specificError;
+                    setTimeout(() => {
+                        resultDisplay.textContent = currentResult;
+                    }, 2000);
+                    return;
+                }
+
+                originalCalculate();
+            }
+        };
+
+        // Add scientific notation toggle
+        let useScientificNotation = false;
+        window.toggleScientificNotation = function() {
+            useScientificNotation = !useScientificNotation;
+            if (currentResult !== '0' && currentResult !== 'Error') {
+                const num = parseFloat(currentResult);
+                currentResult = useScientificNotation ? 
+                    num.toExponential(6) : 
+                    formatResult(num);
+                updateDisplay();
+            }
+        };
+
+        // Add keyboard shortcuts help
+        window.showKeyboardHelp = function() {
+            const helpWindow = window.open('', '_blank', 'width=400,height=500');
+            helpWindow.document.write(`
+                <html>
+                <head><title>Keyboard Shortcuts</title></head>
+                <body style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
+                <h2>Keyboard Shortcuts</h2>
+                <ul>
+                    <li><strong>0-9, .</strong> - Numbers and decimal</li>
+                    <li><strong>+ - * /</strong> - Basic operations</li>
+                    <li><strong>Enter, =</strong> - Calculate</li>
+                    <li><strong>Escape</strong> - Clear all</li>
+                    <li><strong>Backspace</strong> - Delete last character</li>
+                    <li><strong>( )</strong> - Parentheses</li>
+                    <li><strong>H</strong> - Toggle history</li>
+                    <li><strong>T</strong> - Toggle theme</li>
+                    <li><strong>%</strong> - Percentage</li>
+                </ul>
+                <h3>Tips:</h3>
+                <ul>
+                    <li>Click result to copy to clipboard</li>
+                    <li>Use memory functions (MS, MR, MC, M+)</li>
+                    <li>Switch between DEG/RAD/GRAD modes</li>
+                    <li>View calculation history</li>
+                </ul>
+                </body>
+                </html>
+            `);
+        };
+
+        console.log('🧮 Advanced Scientific Calculator loaded successfully!');
+        console.log('💡 Click result to copy, press H for history, T for theme toggle');
+    </script>
+</body>
+</html>
